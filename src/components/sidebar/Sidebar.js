@@ -11,6 +11,15 @@ const Sidebar = () => {
     <StaticQuery
       query={graphql`
         query SiteBioQuery {
+          file(relativePath: { eq: "jaywolfe.jpg" }) {
+            childImageSharp {
+              # Specify the image processing specifications right in the query.
+              # Makes it trivial to update as your page's design changes.
+              fixed(width: 125, height: 125) {
+                ...GatsbyImageSharpFixed
+              }
+            }
+          }
           site {
             siteMetadata {
               title
@@ -50,6 +59,7 @@ const Sidebar = () => {
         <>
           <div className="sidebar-main border-right">
             <Bio
+              img={data.file.childImageSharp.fixed}
               author={data.site.siteMetadata.author}
               tagline={data.site.siteMetadata.tagline}
             />
