@@ -57,16 +57,6 @@ const Layout = ({ children }) => {
                 </a>
                 , All Rights Reserved.
               </p>
-              {/* <p className="mt-5 text-muted d-inline">
-                <i>
-                  {" "}
-                  Built with
-                  {` `}
-                  <a className="text-info" href="https://www.gatsbyjs.org">
-                    Gatsby
-                  </a>
-                </i>
-              </p> */}
             </footer>
           </div>
         </>
