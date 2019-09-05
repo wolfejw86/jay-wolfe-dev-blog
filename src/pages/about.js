@@ -1,27 +1,32 @@
 import React from "react"
 import Layout from "../components/layout"
 import SEO from "../components/seo"
-import { FaCheckCircle } from "react-icons/fa"
+// import { FaCheckCircle } from "react-icons/fa"
 import "./index.css"
 
 import Sidebar from "../components/sidebar/Sidebar"
-import TechTag from "../components/tags/TechTag"
+// import TechTag from "../components/tags/TechTag"
 
-const AboutPage = (props) => {
-    return (
-        <Layout>
-            <SEO title="About" />
-            <div className="post-page-main">
-                <div className="sidebar px-4 py-2">
-                    <Sidebar />
-                </div>
+const AboutPage = props => {
+  return (
+    <Layout>
+      <SEO title="About" />
+      <div className="post-page-main">
+        <div className="sidebar px-4 py-2">
+          <Sidebar />
+        </div>
 
-                <div className="post-main">
-                    <SEO title="About" />
-                    <div className="mt-3">
-                        <h2 className="heading">About</h2>
-                        <p><i>Developer Diary is a Gatsby Starter blog template created with web developers in mind, but really, anyone can use it. It's totally usable right out of the box, but minimalist enough to be easily modifiable to suit your needs.</i></p>
-                        <br />
+        <div className="post-main">
+          <SEO title="About" />
+          <div className="mt-3">
+            <h2 className="heading">About</h2>
+            <p>
+              <i>
+                Jay is a full time remote software developer and lover of
+                adventures.
+              </i>
+            </p>
+            {/* <br />
                         <h4>Features</h4>
                         <div>
                             <span className="text-success d-inline-block" title="blazing">
@@ -53,20 +58,16 @@ const AboutPage = (props) => {
                             </span>
                             <p className="d-inline-block ml-3 w-75 align-top">Developer-relevant social-media icon links including GitHub, Stack Overflow and freeCodeCamp</p>
                         </div>
-                        <div>
+                        <div> 
                             <span className="text-success d-inline-block" title="mobile">
                                 <FaCheckCircle size={26} style={{ color: "success" }} />
                             </span>
-                            <p className="d-inline-block ml-3 w-75 align-top">Mobile responsive, of course</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </Layout>
-    )
+                            <p className="d-inline-block ml-3 w-75 align-top">Mobile responsive, of course</p>*/}
+          </div>
+        </div>
+      </div>
+    </Layout>
+  )
 }
 
-
-
 export default AboutPage
-

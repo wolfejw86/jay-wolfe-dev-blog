@@ -1,7 +1,7 @@
 ---
-title: "Mongo CLI Helpful Hints"
+title: "Code Blocks Demo"
 tags: ["mongodb"]
-published: true
+published: falses
 date: "2018-12-29"
 ---
 
