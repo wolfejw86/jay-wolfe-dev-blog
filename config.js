@@ -2,7 +2,7 @@
 
 module.exports = {
   url: "https://jaywolfe.dev",
-  title: "MongoDB Leveling Up",
+  title: "The MongoDB Way",
   tagline: "Focusing on solving problems",
   copyright: "© 2019 Jay Wolfe, All rights reserved",
   author: {
