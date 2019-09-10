@@ -40,6 +40,8 @@ That’s it! Now obviously you could do a lot more in terms of binding more node
 
 There you have it. You should see some configuration output and you should see activity in your mongod terminal.
 
+![console2](../../../src/images/replica-set-local/console2.png)
+
 Now I can easily develop locally simulating the full feature set of a mongodb replica set.
 
 If you're like me and don't want to keep a list of unnecessary long commands lying around, try aliasing it. You don't have to run `rs.initiate()` except for the very first time.
@@ -137,7 +139,9 @@ The bash file is relatively straightforward mongo syntax, which you can read abo
 
 Once the bash file runs, the replica set is initiated and after a few moments the replica set is ready. It’s important to note that this takes some time, and the application will either need to handle the database not being ready right away or not even start up until the database is ready. The best way I’ve found to do this is to run the replica set separately from the app you’re developing, in which case you may be better off just using the installation method above.
 
-I wrapped all the compose setup and info into a repo so you can skip straight to the code. I also wrote a small node file that creates events and listens to a change stream (to prove that the replica set is running locally):
+I wrapped all the compose setup and info into a repo so you can skip straight to the code. I also wrote a small node file that creates events and listens to a change stream (to prove that the replica set is running locally).
+
+If you want to skip straight to the repo, you can clone it here - https://github.com/wolfejw86/local-replica-set and just run `docker-compose up` and it should just work. Otherwise take a look below as I dive into the code for a bit of a deeper explanation.
 
 ```js
 const crypto = require("crypto")
@@ -152,55 +156,114 @@ const client = new MongoClient(url, {
 })
 
 async function main() {
-  client.connect(async err => {
-    console.log("Connected successfully to db")
+  await client.connect()
+  console.log("db connected")
 
-    const db = client.db(dbName)
+  const db = client.db(dbName)
 
-    const collection = db.collection("changetest")
-    const changeStream = collection.watch([], { fullDocument: "updateLookup" })
+  const collection = db.collection("changetest")
+  const changeStream = collection.watch([], { fullDocument: "updateLookup" })
 
-    const data = [
-      { event: crypto.randomBytes(5).toString("hex") },
-      { event: crypto.randomBytes(5).toString("hex") },
-      { event: crypto.randomBytes(5).toString("hex") },
-      { event: crypto.randomBytes(5).toString("hex") },
-      { event: crypto.randomBytes(5).toString("hex") },
-    ]
+  const data = [
+    { event: crypto.randomBytes(5).toString("hex") },
+    { event: crypto.randomBytes(5).toString("hex") },
+    { event: crypto.randomBytes(5).toString("hex") },
+    { event: crypto.randomBytes(5).toString("hex") },
+    { event: crypto.randomBytes(5).toString("hex") },
+  ]
 
-    let i = 0
+  let i = -1
+  const interval = setInterval(async () => {
+    await collection.insertOne(data[++i])
 
-    const interval = setInterval(async () => {
-      i++
-      await collection.insertOne(data[i])
+    if (i === data.length - 1) {
+      clearInterval(interval)
+    }
+  }, 1000)
 
-      if (i > 3) {
-        clearInterval(interval)
-      }
-    }, 1000)
+  async function getNext() {
+    const next = await changeStream.next()
 
-    async function getNext() {
-      const next = await changeStream.next()
+    console.log("change stream fired", next.fullDocument.event)
+    assert.equal(data[i].event, next.fullDocument.event)
 
-      console.log("change stream fired", next.fullDocument.event)
-      assert.equal(data[i].event, next.fullDocument.event)
-
-      if (i > 3) {
-        return
-      }
-
-      if (next) {
-        return await getNext()
-      }
+    if (i > 3) {
+      return
     }
 
-    await getNext()
+    if (next) {
+      return await getNext()
+    }
+  }
 
-    client.close()
-  })
+  await getNext()
+
+  console.log("exercise complete, disconnecting")
+  await client.close()
 }
 
 main()
 ```
 
-If you want to skip straight to the repo, you can clone it here - https://github.com/wolfejw86/local-replica-set and just run `docker-compose up` and it should just work.
+Let's walk through this example really quickly. In this first section:
+
+```js
+const crypto = require("crypto")
+const assert = require("assert")
+const MongoClient = require("mongodb").MongoClient
+
+const url = "mongodb://localhost:27017"
+const dbName = "myproject"
+const client = new MongoClient(url, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+```
+
+I am simply requiring my dependencies. A lot of folks will use `mongoose` even for small examples like this. I like to step away from it every once in a while so that I remember that it's really a fancy wrapper around the native `mongodb` driver. When I remember this, I can always easily address inconsistencies with what I'm trying to do in mongo vs what the mongoose documentation is telling me. That being, said, this is simply setting up for a basic connection. Yes the uri is hardcoded, no you shouldn't do this in production ;) We just want to see something work that will _only_ work in a replica set and not on your simple single node localhost mongo!
+
+```js
+async function main() {
+  await client.connect()
+  console.log("connected to db")
+```
+
+Alright on to the main event! First off, now that the newest version of the mongodb driver for nodejs supports promises, we can just await the connection action to the db. Why am I using this `async function main` you ask? Because we have no top level await support in javascript. It would be nice but honestly, who cares?! Just put a single async function to initiate your "business" and get started. Just don't forget to call it to start your app!
+
+```js
+const db = client.db(dbName)
+
+const collection = db.collection("changetest")
+const changeStream = collection.watch([], { fullDocument: "updateLookup" })
+
+const data = [
+  { event: crypto.randomBytes(5).toString("hex") },
+  { event: crypto.randomBytes(5).toString("hex") },
+  { event: crypto.randomBytes(5).toString("hex") },
+  { event: crypto.randomBytes(5).toString("hex") },
+  { event: crypto.randomBytes(5).toString("hex") },
+]
+```
+
+Now we have the next step in the setup process. Let's remember what we're here to do for a second.
+
+- create a collection so that we can insert some fake data
+- setup a change stream to watch the collection so we can see how they work
+- insert some fake data and watch the change stream in action
+
+The data array is literally just an object with a single property (randomly generated hex string) so that we can see each unique value going into the database.
+
+Alright now get ready for some first class hackery:
+
+```js
+let i = -1
+const interval = setInterval(async () => {
+  await collection.insertOne(data[++i])
+
+  if (i === data.length - 1) {
+    clearInterval(interval)
+  }
+}, 1000)
+```
+
+Here I'm just setting up a basic interval to insert some fake data. On each pass of the interval (once per second) it will insert the current item in data into the array. There's a couple of ways to do this, but I don't find a way to use intervals too often so it's fun to play with them every once in a while. Once the incrementor `i` gets to the last item in the array, the interval just short circuits itself so that the program will stop.
