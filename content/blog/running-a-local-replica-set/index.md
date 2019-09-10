@@ -32,11 +32,17 @@ Now we can start our replica set. It’s actually a really simple one liner:
 
 `mongod --port 27017 --dbpath /data/db --replSet rs0 --bind_ip localhost`
 
-That’s it! Now obviously you could do a lot more in terms of binding more nodes, etc. but if you’re reading this, you were probably just looking for an easy way to get started and here it is. You have to do just one more step to actually turn on your replica set. Connect to mongo CLI again and run this “rs.initiate()”.
+![console1](../../../src/images/replica-set-local/console1.png)
+
+That’s it! Now obviously you could do a lot more in terms of binding more nodes, etc. but if you’re reading this, you were probably just looking for an easy way to get started and here it is. You have to do just one more step to actually turn on your replica set. Connect to mongo CLI again and run:
+
+`rs.initiate()`
 
 There you have it. You should see some configuration output and you should see activity in your mongod terminal.
 
 Now I can easily develop locally simulating the full feature set of a mongodb replica set.
+
+If you're like me and don't want to keep a list of unnecessary long commands lying around, try aliasing it. You don't have to run `rs.initiate()` except for the very first time.
 
 **The Docker Compose Way**
 
