@@ -5,9 +5,7 @@ published: true
 date: "2019-09-01"
 ---
 
-Running A MongoDB Replica Set Locally and Why You Might Want To:
-
-Why Do I Even Need to Do This?
+**Running A MongoDB Replica Set Locally and Why You Might Want To:**
 
 - You’re like me and want to know how it works! (and more important play around with it locally)
 - The application you’re building has a requirement to use change streams
