@@ -8,12 +8,15 @@ date: "2019-09-01"
 Running A MongoDB Replica Set Locally and Why You Might Want To:
 
 Why Do I Even Need to Do This?
-You’re like me and want to know how it works! (and more important play around with it locally)
-The application you’re building has a requirement to use change streams
-The application you’re building has a requirement to use transactions
-You want to learn how either of the above 2 features work without having to deploy a database to the cloud
 
-The MongoDB Installation Way
+- You’re like me and want to know how it works! (and more important play around with it locally)
+- The application you’re building has a requirement to use change streams
+- The application you’re building has a requirement to use transactions
+- You want to learn how either of the above 2 features work without having to deploy a database to the cloud
+
+The truth is, any of the above or something completely different are all fine reasons to want to learn something new. That's what this industry is all about and personally one of the reasons I enjoy it so much.
+
+**The MongoDB Installation Way**
 
 Windows - Mac - Linux - It used to be more of a separated installation, perhaps you’re used to using something like Chocolatey on Windows or Homebrew on a Mac. I would no longer recommend those installation methods and instead, opt to just install from the MongoDB Manual Documentation
 
@@ -35,7 +38,7 @@ There you have it. You should see some configuration output and you should see a
 
 Now I can easily develop locally simulating the full feature set of a mongodb replica set.
 
-The Docker Compose Way
+**The Docker Compose Way**
 
 The docker way (especially locally) is a bit more convoluted, however can be really useful for building containerized apps that communicate over dynamic DNS. We’re going to need two files, one for our docker-compose.yml and one for our replica set setup script.
 
