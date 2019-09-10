@@ -5,6 +5,193 @@ published: true
 date: "2019-09-01"
 ---
 
-Curabitur tincidunt hendrerit justo. Praesent nisl dui, mollis vitae quam eu, dignissim faucibus lorem. Sed vitae erat at sem suscipit laoreet nec vel diam.
+Running A MongoDB Replica Set Locally and Why You Might Want To:
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/-BIQjRd3NGk" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+Why Do I Even Need to Do This?
+You’re like me and want to know how it works! (and more important play around with it locally)
+The application you’re building has a requirement to use change streams
+The application you’re building has a requirement to use transactions
+You want to learn how either of the above 2 features work without having to deploy a database to the cloud
+
+The MongoDB Installation Way
+
+Windows - Mac - Linux - It used to be more of a separated installation, perhaps you’re used to using something like Chocolatey on Windows or Homebrew on a Mac. I would no longer recommend those installation methods and instead, opt to just install from the MongoDB Manual Documentation
+
+Once it’s installed, make sure that it isn’t running in the background. If it’s already running, then you can’t start it as a replica set. If you want to double check you can run `mongo` and see if the mongo CLI utility auto connects. If it connects, you already have something running and need to shut it down by doing the following:
+
+Connect to it with mongo cli:
+
+`mongo --eval "db.getSiblingDB('admin').shutdownServer()"`
+
+Now that we can start fresh, make sure your data directory is setup properly. I am on a mac and have it set to /data/db. You’ll need to do the same (or equivalent) on your machine.
+
+Now we can start our replica set. It’s actually a really simple one liner:
+
+`mongod --port 27017 --dbpath /data/db --replSet rs0 --bind_ip localhost`
+
+That’s it! Now obviously you could do a lot more in terms of binding more nodes, etc. but if you’re reading this, you were probably just looking for an easy way to get started and here it is. You have to do just one more step to actually turn on your replica set. Connect to mongo CLI again and run this “rs.initiate()”.
+
+There you have it. You should see some configuration output and you should see activity in your mongod terminal.
+
+Now I can easily develop locally simulating the full feature set of a mongodb replica set.
+
+The Docker Compose Way
+
+The docker way (especially locally) is a bit more convoluted, however can be really useful for building containerized apps that communicate over dynamic DNS. We’re going to need two files, one for our docker-compose.yml and one for our replica set setup script.
+
+Here is our compose file:
+
+```yml
+version: "3"
+services:
+  mongo1:
+    hostname: mongo1
+    container_name: localmongo1
+    image: mongo:4.0
+    ports:
+      - "27017:27017"
+    expose:
+      - 27017
+    restart: always
+    entrypoint: ["/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0"]
+
+  mongo2:
+    hostname: mongo2
+    container_name: localmongo2
+    image: mongo:4.0
+    expose:
+      - 27017
+    restart: always
+    entrypoint: ["/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0"]
+
+  mongo3:
+    hostname: mongo3
+    container_name: localmongo3
+    image: mongo:4.0
+    expose:
+      - 27017
+    restart: always
+    entrypoint: ["/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0"]
+
+  mongosetup:
+    image: mongo:4.0
+    links:
+      - mongo1:mongo1
+      - mongo2:mongo2
+      - mongo3:mongo3
+    depends_on:
+      - mongo1
+      - mongo2
+      - mongo3
+    volumes:
+      - ./scripts:/scripts
+      - ./data/db:/data/db
+    restart: "no"
+    entrypoint: ["bash", "/scripts/mongo_setup.sh"]
+```
+
+We start three different mongod processes all linked together, and then create an additional 4th service in our compose file that essentially just runs a bash file with its entrypoint.
+
+```sh
+sleep 10
+
+echo SETUP.sh time now: `date +"%T" `
+mongo --host mongo1:27017 <<EOF
+  var cfg = {
+    "_id": "rs0",
+    "version": 1,
+    "members": [
+      {
+        "_id": 0,
+        "host": "mongo1:27017",
+        "priority": 2
+      },
+      {
+        "_id": 1,
+        "host": "mongo2:27017",
+        "priority": 0
+      },
+      {
+        "_id": 2,
+        "host": "mongo3:27017",
+        "priority": 0
+      }
+    ]
+  };
+  rs.initiate(cfg, { force: true });
+  rs.reconfig(cfg, { force: true });
+  db.getMongo().setReadPref('nearest');
+EOF
+```
+
+The bash file is relatively straightforward mongo syntax, which you can read about at [MongoDB's documentation page](https://docs.mongodb.com/manual/reference/replica-configuration/). It is basically initiating the replica set with each member node that we are running in the docker-compose file.
+
+Once the bash file runs, the replica set is initiated and after a few moments the replica set is ready. It’s important to note that this takes some time, and the application will either need to handle the database not being ready right away or not even start up until the database is ready. The best way I’ve found to do this is to run the replica set separately from the app you’re developing, in which case you may be better off just using the installation method above.
+
+I wrapped all the compose setup and info into a repo so you can skip straight to the code. I also wrote a small node file that creates events and listens to a change stream (to prove that the replica set is running locally):
+
+```js
+const crypto = require("crypto")
+const assert = require("assert")
+const MongoClient = require("mongodb").MongoClient
+
+const url = "mongodb://localhost:27017"
+const dbName = "myproject"
+const client = new MongoClient(url, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+
+async function main() {
+  client.connect(async err => {
+    console.log("Connected successfully to db")
+
+    const db = client.db(dbName)
+
+    const collection = db.collection("changetest")
+    const changeStream = collection.watch([], { fullDocument: "updateLookup" })
+
+    const data = [
+      { event: crypto.randomBytes(5).toString("hex") },
+      { event: crypto.randomBytes(5).toString("hex") },
+      { event: crypto.randomBytes(5).toString("hex") },
+      { event: crypto.randomBytes(5).toString("hex") },
+      { event: crypto.randomBytes(5).toString("hex") },
+    ]
+
+    let i = 0
+
+    const interval = setInterval(async () => {
+      i++
+      await collection.insertOne(data[i])
+
+      if (i > 3) {
+        clearInterval(interval)
+      }
+    }, 1000)
+
+    async function getNext() {
+      const next = await changeStream.next()
+
+      console.log("change stream fired", next.fullDocument.event)
+      assert.equal(data[i].event, next.fullDocument.event)
+
+      if (i > 3) {
+        return
+      }
+
+      if (next) {
+        return await getNext()
+      }
+    }
+
+    await getNext()
+
+    client.close()
+  })
+}
+
+main()
+```
+
+If you want to skip straight to the repo, you can clone it here - https://github.com/wolfejw86/local-replica-set and just run `docker-compose up` and it should just work.
