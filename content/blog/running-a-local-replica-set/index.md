@@ -92,7 +92,7 @@ services:
 
 We start three different mongod processes all linked together, and then create an additional 4th service in our compose file that essentially just runs a bash file with its entrypoint.
 
-```sh
+```bash
 sleep 10
 
 echo SETUP.sh time now: `date +"%T" `
