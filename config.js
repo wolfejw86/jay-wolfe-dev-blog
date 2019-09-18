@@ -3,7 +3,7 @@
 module.exports = {
   url: "https://jaywolfe.dev",
   title: "MongoDB Authority",
-  tagline: "solving problems one at a time",
+  tagline: "solving problems one at a time with different backend tech!",
   copyright: "© 2019 Jay Wolfe, All rights reserved",
   author: {
     name: "Jay Wolfe",
