@@ -5,6 +5,7 @@ const siteConfig = require("./config")
 module.exports = {
   siteMetadata: {
     url: siteConfig.url,
+    siteUrl: siteConfig.url,
     title: siteConfig.title,
     tagline: siteConfig.tagline,
     description: `The internet land according to Jay Wolfe, specifically related to backend web development, backend architecture, and crafting solutions to problems in MongoDB`,
@@ -18,6 +19,7 @@ module.exports = {
     labels: siteConfig.labels,
   },
   plugins: [
+    "gatsby-plugin-feed",
     `gatsby-plugin-react-helmet`,
     {
       resolve: `gatsby-source-filesystem`,
