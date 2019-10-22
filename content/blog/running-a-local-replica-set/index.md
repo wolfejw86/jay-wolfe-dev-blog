@@ -32,6 +32,11 @@ Now we can start our replica set. It’s actually a really simple one liner:
 
 ![console1](../../../src/images/replica-set-local/console1.png)
 
+Problems with this step? Check this list here:
+
+- I am having trouble with /data/db, I either can't create the directory or I can't figure out how to change it from readonly permissions
+  - solution:  You can google about filesystem permissions and `chmod 777` and all that, however I recommend a simpler fix.  Just create a directory somewhere easily accessible that you know you have write permissions on your file system for.  I personally like to use `mkdir -p ~/Desktop/data/db` (on a mac) or do the equivalent new folder on windows.  The point is it's somewhere you are allowed to create and manipulate files.  Now, change the above command to `mongod --port 27017 --dbpath ~/Desktop/data/db --replSet rs0 --bind_ip localhost`.  That was easy right? All we did was specify a different directory for the mongod process to read and write the database files to and from.
+
 That’s it! Now obviously you could do a lot more in terms of binding more nodes, etc. but if you’re reading this, you were probably just looking for an easy way to get started and here it is. You have to do just one more step to actually turn on your replica set. Connect to mongo CLI again and run:
 
 `rs.initiate()`
