@@ -12,7 +12,10 @@ const folderPath = path.join(
   __dirname,
   "content",
   "blog",
-  blogPostName.replace(/\s/g, "-")
+  `${datefns.format(new Date(), "yyyy-MM-dd")}-${blogPostName.replace(
+    /\s/g,
+    "-"
+  )}`
 )
 fs.mkdirSync(folderPath)
 
