@@ -9,6 +9,8 @@ const Bio = ({ author, tagline, img }) => {
       <Img fixed={img} style={{ borderRadius: "50%" }} />
       <h3 className="mt-2 author-bio">{author}</h3>
       <small className="text-muted">{tagline}</small>
+
+      
     </div>
   )
 }

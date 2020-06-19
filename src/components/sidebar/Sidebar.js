@@ -81,7 +81,9 @@ const Sidebar = () => {
                 posts={data.allMarkdownRemark.edges}
               />
             </div>
+            
           </div>
+          
         </>
       )}
     />
