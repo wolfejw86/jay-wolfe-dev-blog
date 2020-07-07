@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { graphql } from "gatsby"
 import Layout from "../components/layout"
 import SEO from "../components/seo"
@@ -9,6 +9,22 @@ import TechTag from "../components/tags/TechTag"
 import CustomShareBlock from "../components/CustomShareBlock"
 
 const BlogPost = (props) => {
+  const commentsEl = useRef(null);
+  const [commentsLoaded, setCommentsLoaded] = useState('pending');
+
+  useEffect(() => {
+    const scriptEl = document.createElement('script');
+    scriptEl.onload = () => setCommentsLoaded('success');
+    scriptEl.onerror = () => setCommentsLoaded('failed');
+    scriptEl.async = true;
+    scriptEl.src = 'https://utteranc.es/client.js';
+    scriptEl.setAttribute('repo', 'wolfejw86/dev-blog-comments');
+    scriptEl.setAttribute('issue-term', 'pathname');
+    scriptEl.setAttribute('theme', 'github-light');
+    scriptEl.setAttribute('crossorigin', 'anonymous');
+    commentsEl.current.appendChild(scriptEl);
+  }, [commentsEl, setCommentsLoaded]);
+
   const post = props.data.markdownRemark
   const labels = props.data.site.siteMetadata.labels
   const siteName = props.data.site.siteMetadata.title 
@@ -48,6 +64,13 @@ const BlogPost = (props) => {
             <div dangerouslySetInnerHTML={{ __html: post.html }} />
             <CustomShareBlock title={post.frontmatter.title} siteName={siteName} url={url} />
           </div>
+          <div className="comments">
+              <div>
+                {commentsLoaded === 'pending' && <> <p>Loading Comments...</p> </>}
+                {commentsLoaded === 'failed' && <> <p>Failed to load Comments - Try Refreshing the Page</p> </>}
+                <div ref={commentsEl}/>
+              </div>
+            </div>
         </div>
       </div>
     </Layout>
