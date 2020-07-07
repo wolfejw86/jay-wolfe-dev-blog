@@ -2,9 +2,9 @@
 
 module.exports = {
   url: "https://jaywolfe.dev",
-  title: "MongoDB Authority",
+  title: "Power-Up Coding",
   tagline: "solving problems one at a time with different backend tech!",
-  copyright: "© 2019 Jay Wolfe, All rights reserved",
+  copyright: "© 2019-2020 Jay Wolfe, All rights reserved",
   author: {
     name: "Jay Wolfe",
     bio: "Self-taught web developer and outdoor enthusiast",
@@ -104,6 +104,13 @@ module.exports = {
       tag: "vscode",
       tech: "VS Code",
       name: "DiVisualstudio",
+      size: 20,
+      color: "deepskyblue",
+    },
+    {
+      tag: "postgres",
+      tech: "Postgresql",
+      name: "DiPostgresql",
       size: 20,
       color: "deepskyblue",
     },
