@@ -5,7 +5,7 @@ published: true
 date: "2020-06-19"
 ---
 
-This 10 part video series is a chance to learn one of my curated workflows for quickly building a REST API with Fastify, NodeJS, and Postgresql that is self documenting and able to be scaled very easily for much larger projects.
+This multi part video series is a chance to learn one of my curated workflows for quickly building a REST API with Fastify, NodeJS, and Postgresql that is self documenting and able to be scaled very easily for much larger projects.
 
 - Build API's lightning fast with NodeJS and Fastify
 
