@@ -2,7 +2,7 @@
 
 module.exports = {
   url: "https://jaywolfe.dev",
-  title: "Power-Up Coding",
+  title: "Jay Wolfe Codes",
   tagline: "solving problems one at a time with different backend tech!",
   copyright: "© 2019-2020 Jay Wolfe, All rights reserved",
   author: {
